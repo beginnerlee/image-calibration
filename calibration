@@ -13,6 +13,13 @@ imgpoints = [] # 2D 이미지 좌표
 video_path = 'cal2.mp4' # 파일 경로
 cap = cv.VideoCapture(video_path)
 
+fps = cap.get(cv.CAP_PROP_FPS) # 원본 영상의 FPS 가져오기
+if fps == 0 or fps > 100: fps = 20.0 # 예외 처리
+
+save_size = (960, 540) # 저장할 영상 크기
+fourcc = cv.VideoWriter_fourcc(*'mp4v')
+out = cv.VideoWriter('calibration_record.mp4', fourcc, fps, save_size)
+
 frame_count = 0
 found_count = 0
 
@@ -42,13 +49,16 @@ while cap.isOpened():
             found_count += 1
             # 검출 화면 표시
             cv.drawChessboardCorners(frame, CHESS_SIZE, corners2, ret_chess)
-            print("succeed!")
 
+    display_frame = cv.resize(frame, save_size, interpolation=cv.INTER_AREA)
+    out.write(display_frame)
+    
     cv.imshow('Calibration Process', display_frame)
     if cv.waitKey(1) & 0xFF == ord('q'):
         break
 
 cap.release()
+out.release()
 cv.destroyAllWindows()
 
 # 3. 캘리브레이션 계산
